@@ -14,6 +14,8 @@ const scrapers = {
 
     const products = await page.evaluate(() => {
       const pickImage = (item) => {
+        const direct = item.getAttribute('data-image') || item.getAttribute('data-img') || item.getAttribute('data-image-src');
+        if (direct) return direct;
         const img = item.querySelector('img');
         const source = item.querySelector('source');
         const candidates = [];

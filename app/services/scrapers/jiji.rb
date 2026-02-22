@@ -3,6 +3,7 @@
 require 'nokogiri'
 require 'open3'
 require 'json'
+require 'net/http'
 
 module Scrapers
   class Jiji < Base
@@ -38,6 +39,9 @@ module Scrapers
     }.freeze
 
     def scrape(query, min_price: nil, max_price: nil)
+      api_products = fetch_api_results(query, min_price, max_price)
+      return api_products if api_products.any?
+
       category = category_for(query)
       url = if category
               "#{BASE_URL}/#{category}?query=#{URI.encode_www_form_component(query)}"
@@ -154,6 +158,31 @@ module Scrapers
         return val unless val.empty? || val.include?('placeholder')
       end
       ''
+    end
+
+    def fetch_api_results(query, min_price, max_price)
+      url = URI("https://jiji.com.gh/api_web/v1/listing?query=#{URI.encode_www_form_component(query)}&page=1")
+      response = Net::HTTP.get_response(url)
+      return [] unless response.is_a?(Net::HTTPSuccess)
+
+      data = JSON.parse(response.body)
+      adverts = data.dig('adverts_list', 'adverts') || []
+
+      adverts.filter_map do |item|
+        price = item.dig('price_obj', 'value').to_f
+        next unless within_budget?(price, min_price, max_price)
+
+        {
+          title: item['title'].to_s,
+          price: price,
+          currency: 'GHS',
+          url: safe_url(BASE_URL, item['url'].to_s),
+          image_url: item.dig('images', 0, 'url').to_s,
+          store: 'Jiji'
+        }
+      end
+    rescue StandardError
+      []
     end
 
     def scrape_with_playwright(query, min_price, max_price)

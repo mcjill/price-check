@@ -89,6 +89,11 @@ module Scrapers
     end
 
     def extract_image(item)
+      %w[data-image data-img data-image-src].each do |attr|
+        val = item[attr].to_s
+        return val unless val.empty?
+      end
+
       img = item.at_css('img')
       source = item.at_css('source')
       candidates = []
