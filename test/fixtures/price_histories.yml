@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  product: one
+  price: 9.99
+  currency: MyString
+  scraped_at: 2026-02-22 03:29:47
+
+two:
+  product: two
+  price: 9.99
+  currency: MyString
+  scraped_at: 2026-02-22 03:29:47

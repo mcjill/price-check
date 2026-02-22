@@ -1,0 +1,39 @@
+<div data-product-card data-store="<%= product[:store] %>" class="group flex h-[380px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#151515] shadow-[0_18px_40px_rgba(0,0,0,0.22)] transition hover:-translate-y-1 hover:shadow-[0_26px_60px_rgba(0,0,0,0.3)] sm:border-slate-200 sm:bg-white">
+  <div class="relative h-44 w-full overflow-hidden bg-black/10 sm:h-48">
+    <% if product[:image_url].present? %>
+      <img src="<%= product[:image_url] %>" alt="<%= product[:title] %>" class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]" loading="lazy">
+    <% else %>
+      <div class="h-full w-full bg-white/5 sm:bg-slate-100"></div>
+    <% end %>
+  </div>
+
+  <div class="flex flex-1 flex-col gap-4 p-5">
+    <div class="flex items-center justify-between">
+      <span class="inline-flex items-center gap-2 rounded-full bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.26em] text-white/80 sm:bg-slate-100 sm:text-slate-600">
+        <% if store_logo_url(product[:store]) %>
+          <img src="<%= store_logo_url(product[:store]) %>" alt="<%= product[:store] %> logo" class="h-4 w-auto max-w-[40px] object-contain">
+        <% end %>
+        <%= product[:store] %>
+      </span>
+      <span class="text-sm font-semibold text-white sm:text-slate-900">
+        GHS <%= number_with_delimiter(product[:price].to_i) %>
+      </span>
+    </div>
+
+    <div class="min-h-[56px] text-[15px] font-semibold leading-snug text-white sm:text-slate-900 line-clamp-2">
+      <%= product[:title] %>
+    </div>
+
+    <div class="mt-auto">
+      <% if product[:url].present? %>
+        <a href="<%= product[:url] %>" target="_blank" rel="noopener" class="inline-flex w-full items-center justify-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-100 sm:bg-slate-900 sm:text-white sm:hover:bg-slate-800">
+          View deal
+        </a>
+      <% else %>
+        <span class="inline-flex w-full items-center justify-center rounded-full bg-white/5 px-4 py-2 text-sm font-semibold text-white/70 sm:bg-slate-100 sm:text-slate-400">
+          No link
+        </span>
+      <% end %>
+    </div>
+  </div>
+</div>

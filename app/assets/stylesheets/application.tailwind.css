@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-display: "Space Grotesk", system-ui, -apple-system, sans-serif;
+    --font-body: "Sora", system-ui, -apple-system, sans-serif;
+  }
+
+  body {
+    font-family: var(--font-body);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+  }
+
+  input[type="text"],
+  input[type="search"],
+  input[type="number"] {
+    outline: none;
+    box-shadow: none;
+  }
+
+  input[type="text"]:focus,
+  input[type="search"]:focus,
+  input[type="number"]:focus,
+  input[type="text"]:focus-visible,
+  input[type="search"]:focus-visible,
+  input[type="number"]:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
+  .search-input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+
+  .search-input::selection {
+    background: transparent;
+    color: inherit;
+  }
+}
+
+@layer utilities {
+  .clip-right {
+    clip-path: polygon(100% 0, 0 0, 100% 100%);
+  }
+
+  .clip-left {
+    clip-path: polygon(0 0, 0 100%, 100% 100%);
+  }
+}

@@ -1,0 +1,3 @@
+<%= turbo_stream.update "results" do %>
+  <%= render "searches/results", results: @results, query: @query %>
+<% end %>

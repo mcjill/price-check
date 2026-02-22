@@ -1,0 +1,32 @@
+<% if results.high.empty? && results.other.empty? %>
+  <div class="mx-auto max-w-3xl text-center text-slate-300 sm:text-slate-500">
+    <h2 class="text-lg font-semibold text-white sm:text-slate-900">Ready when you are.</h2>
+    <p class="mt-2 text-sm text-slate-300 sm:text-slate-500">Search a product to light up the best price signals.</p>
+  </div>
+<% else %>
+  <div class="mx-auto max-w-6xl space-y-6 text-left">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="text-sm font-semibold text-white sm:text-slate-900">
+        Results
+        <span class="ml-2 text-xs font-medium text-slate-400">(<span data-results-count><%= results.high.length + results.other.length %></span>)</span>
+      </div>
+      <div class="flex flex-wrap gap-2 text-xs">
+        <button type="button" data-store-filter="all" class="rounded-full border border-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-white sm:border-slate-200 sm:text-slate-700">All</button>
+        <% (results.high + results.other).map { |p| p[:store] }.uniq.each do |store| %>
+          <button type="button" data-store-filter="<%= store %>" class="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1 text-[12px] font-medium text-slate-200 sm:border-slate-200 sm:text-slate-600">
+            <% if store_logo_url(store) %>
+              <img src="<%= store_logo_url(store) %>" alt="<%= store %> logo" class="h-4 w-auto max-w-[36px] object-contain">
+            <% end %>
+            <span><%= store %></span>
+          </button>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <% (results.high + results.other).each do |product| %>
+        <%= render "searches/product_card", product: product, highlight: results.high.include?(product) %>
+      <% end %>
+    </div>
+  </div>
+<% end %>
