@@ -11,4 +11,5 @@ Rails.application.routes.draw do
 
   root "pages#home"
   post "search", to: "searches#create"
+  get "image_proxy", to: "images#show"
 end

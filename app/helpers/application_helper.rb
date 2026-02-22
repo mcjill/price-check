@@ -10,4 +10,12 @@ module ApplicationHelper
   def store_logo_url(store)
     STORE_LOGOS[store]
   end
+
+  def proxied_image_url(url)
+    return '' if url.to_s.strip.empty?
+    uri = URI.parse(url) rescue nil
+    return url if uri.nil? || uri.scheme.nil?
+
+    image_proxy_path(url: url)
+  end
 end
