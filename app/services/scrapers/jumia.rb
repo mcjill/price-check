@@ -119,7 +119,7 @@ module Scrapers
       end
 
       html = item.to_s
-      match = html.match(/https?:\\/\\/[^\\s\"']+\\.(?:jpg|jpeg|png|webp)[^\\s\"']*/i)
+      match = html.match(%r{https?://[^\s"']+\.(?:jpg|jpeg|png|webp)[^\s"']*}i)
       return match[0] if match
 
       ''
