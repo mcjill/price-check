@@ -39,6 +39,7 @@ module Scrapers
     }.freeze
 
     def scrape(query, min_price: nil, max_price: nil)
+      query = query.to_s.strip
       api_products = fetch_api_results(query, min_price, max_price)
       return api_products if api_products.any?
 
@@ -165,8 +166,15 @@ module Scrapers
       response = HttpFetcher.get(url, headers: {
         'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept' => 'application/json, text/plain, */*',
-        'Referer' => 'https://www.google.com/'
+        'Accept-Language' => 'en-US,en;q=0.9',
+        'X-Requested-With' => 'XMLHttpRequest',
+        'Origin' => 'https://jiji.com.gh',
+        'Referer' => 'https://jiji.com.gh/'
       })
+      return [] unless response
+      if ENV['DEBUG_JIJI'] == '1'
+        Rails.logger.info("[Jiji API] status=#{response.code} content-type=#{response['content-type']}")
+      end
       return [] unless response.is_a?(Net::HTTPSuccess)
 
       data = JSON.parse(response.body.to_s)
@@ -188,6 +196,7 @@ module Scrapers
       end
       products
     rescue StandardError
+      Rails.logger.warn("[Jiji API] parse failed") if ENV['DEBUG_JIJI'] == '1'
       []
     end
 
