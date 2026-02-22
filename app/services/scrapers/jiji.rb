@@ -161,15 +161,20 @@ module Scrapers
     end
 
     def fetch_api_results(query, min_price, max_price)
-      url = URI("https://jiji.com.gh/api_web/v1/listing?query=#{URI.encode_www_form_component(query)}&page=1")
-      response = Net::HTTP.get_response(url)
+      url = "https://jiji.com.gh/api_web/v1/listing?query=#{URI.encode_www_form_component(query)}&page=1"
+      response = HttpFetcher.get(url, headers: {
+        'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept' => 'application/json, text/plain, */*',
+        'Referer' => 'https://www.google.com/'
+      })
       return [] unless response.is_a?(Net::HTTPSuccess)
 
-      data = JSON.parse(response.body)
+      data = JSON.parse(response.body.to_s)
       adverts = data.dig('adverts_list', 'adverts') || []
 
-      adverts.filter_map do |item|
+      products = adverts.filter_map do |item|
         price = item.dig('price_obj', 'value').to_f
+        price = clean_price(item['price_title'].to_s) if price <= 0
         next unless within_budget?(price, min_price, max_price)
 
         {
@@ -181,6 +186,7 @@ module Scrapers
           store: 'Jiji'
         }
       end
+      products
     rescue StandardError
       []
     end
