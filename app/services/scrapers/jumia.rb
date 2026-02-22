@@ -90,12 +90,29 @@ module Scrapers
 
     def extract_image(item)
       img = item.at_css('img')
-      return '' unless img
+      source = item.at_css('source')
+      candidates = []
 
-      %w[data-src src data-lazy data-original data-img data-image].each do |attr|
-        val = img[attr].to_s
-        return val unless val.empty? || val.include?('data:image') || val.include?('placeholder') || val.include?('svg')
+      if img
+        %w[data-src data-srcset srcset src data-lazy data-original data-img data-image].each do |attr|
+          candidates << img[attr].to_s
+        end
       end
+
+      if source
+        %w[data-srcset srcset].each do |attr|
+          candidates << source[attr].to_s
+        end
+      end
+
+      candidates.each do |val|
+        next if val.to_s.strip.empty?
+        next if val.include?('data:image') || val.include?('placeholder') || val.include?('svg')
+
+        url = val.split(',').first.to_s.split(' ').first.to_s
+        return url unless url.empty?
+      end
+
       ''
     end
 

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require 'nokogiri'
+require 'open3'
+require 'json'
 
 module Scrapers
   class Jiji < Base
@@ -90,7 +92,9 @@ module Scrapers
         break if index >= 40
       end
 
-      products
+      return products if products.any?
+
+      scrape_with_playwright(query, min_price, max_price)
     rescue StandardError
       []
     end
@@ -150,6 +154,31 @@ module Scrapers
         return val unless val.empty? || val.include?('placeholder')
       end
       ''
+    end
+
+    def scrape_with_playwright(query, min_price, max_price)
+      script = Rails.root.join('scripts', 'playwright_scrape.mjs')
+      return [] unless File.exist?(script)
+
+      stdout, _stderr, status = Open3.capture3('node', script.to_s, 'Jiji', query.to_s)
+      return [] unless status.success?
+
+      data = JSON.parse(stdout)
+      data.filter_map do |item|
+        price = clean_price(item['priceText'].to_s)
+        next unless within_budget?(price, min_price, max_price)
+
+        {
+          title: item['title'].to_s,
+          price: price,
+          currency: 'GHS',
+          url: item['url'].to_s,
+          image_url: item['image_url'].to_s,
+          store: 'Jiji'
+        }
+      end
+    rescue StandardError
+      []
     end
   end
 end

@@ -13,6 +13,32 @@ const scrapers = {
     await page.waitForTimeout(3000);
 
     const products = await page.evaluate(() => {
+      const pickImage = (item) => {
+        const img = item.querySelector('img');
+        const source = item.querySelector('source');
+        const candidates = [];
+        if (img) {
+          ['data-src', 'data-srcset', 'srcset', 'src'].forEach((attr) => {
+            const val = img.getAttribute(attr);
+            if (val) candidates.push(val);
+          });
+        }
+        if (source) {
+          ['data-srcset', 'srcset'].forEach((attr) => {
+            const val = source.getAttribute(attr);
+            if (val) candidates.push(val);
+          });
+        }
+        for (const val of candidates) {
+          if (!val) continue;
+          if (val.includes('data:image') || val.includes('placeholder') || val.includes('svg')) continue;
+          const first = val.split(',')[0].trim();
+          const url = first.split(' ')[0].trim();
+          if (url) return url;
+        }
+        return '';
+      };
+
       const items = document.querySelectorAll('article.prd, article, .prd, .product, [data-product], .item');
       const results = [];
       items.forEach((item) => {
@@ -26,20 +52,26 @@ const scrapers = {
         const linkEl = item.querySelector('a.core') || item.querySelector('a[href*="/product/"]') || item.querySelector('a');
         const link = linkEl?.getAttribute('href') || '';
 
-        const imgEl = item.querySelector('img');
-        const img = imgEl?.getAttribute('data-src') || imgEl?.getAttribute('src') || '';
+        const img = pickImage(item);
 
         results.push({ title, priceText, link, img });
       });
       return results;
     });
 
-    return products.map((p) => ({
-      title: p.title,
-      priceText: p.priceText,
-      url: p.link.startsWith('http') ? p.link : `https://www.jumia.com.gh${p.link}`,
-      image_url: p.img.startsWith('http') ? p.img : `https://www.jumia.com.gh${p.img}`
-    }));
+    return products.map((p) => {
+      const imageUrl = p.img.startsWith('http')
+        ? p.img
+        : p.img.startsWith('//')
+          ? `https:${p.img}`
+          : `https://www.jumia.com.gh${p.img}`;
+      return {
+        title: p.title,
+        priceText: p.priceText,
+        url: p.link.startsWith('http') ? p.link : `https://www.jumia.com.gh${p.link}`,
+        image_url: imageUrl
+      };
+    });
   },
   Amazon: async (page, q) => {
     const url = `https://www.amazon.com/s?k=${encodeURIComponent(q)}`;
@@ -71,6 +103,47 @@ const scrapers = {
       url: p.link.startsWith('http') ? p.link : `https://www.amazon.com${p.link}`,
       image_url: p.img
     }));
+  },
+  Jiji: async (page, q) => {
+    const url = `https://jiji.com.gh/search?query=${encodeURIComponent(q)}`;
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.waitForTimeout(2000);
+
+    const products = await page.evaluate(() => {
+      const items = document.querySelectorAll('.qa-advert-list-item, .b-list-advert-base, .js-advert-list-item, article');
+      const results = [];
+      items.forEach((item) => {
+        const titleEl = item.querySelector('[class*=title]') || item.querySelector('h3') || item.querySelector('h4') || item.querySelector('h5');
+        const title = titleEl?.textContent?.trim() || '';
+        if (!title) return;
+
+        const priceEl = item.querySelector('[class*=price]');
+        const priceText = priceEl?.textContent?.trim() || '';
+
+        const linkEl = item.querySelector('a[href*=".html"]') || item.querySelector('a[href]');
+        const link = linkEl?.getAttribute('href') || '';
+
+        const imgEl = item.querySelector('img');
+        const img = imgEl?.getAttribute('data-src') || imgEl?.getAttribute('src') || '';
+
+        results.push({ title, priceText, link, img });
+      });
+      return results;
+    });
+
+    return products.map((p) => {
+      const imageUrl = p.img.startsWith('http')
+        ? p.img
+        : p.img.startsWith('//')
+          ? `https:${p.img}`
+          : `https://jiji.com.gh${p.img}`;
+      return {
+        title: p.title,
+        priceText: p.priceText,
+        url: p.link.startsWith('http') ? p.link : `https://jiji.com.gh${p.link}`,
+        image_url: imageUrl
+      };
+    });
   }
 };
 
