@@ -13,12 +13,10 @@ class HttpFetcher
     'Accept-Encoding' => 'gzip'
   }.freeze
 
-  def self.get(url, headers: {}, timeout: 12, max_redirects: 3)
+  def self.get(url, headers: {}, timeout: 12, max_redirects: 3, proxy_url: nil)
     uri = URI.parse(url)
-    http = Net::HTTP.new(uri.host, uri.port)
+    http = build_http_client(uri, proxy_url: proxy_url, timeout: timeout)
     http.use_ssl = uri.scheme == 'https'
-    http.open_timeout = timeout
-    http.read_timeout = timeout
 
     request = Net::HTTP::Get.new(uri.request_uri)
     (DEFAULT_HEADERS.merge(headers)).each { |k, v| request[k] = v }
@@ -29,7 +27,7 @@ class HttpFetcher
       location = response['location']
       return response if location.to_s.empty?
 
-      return get(location, headers: headers, timeout: timeout, max_redirects: max_redirects - 1)
+      return get(location, headers: headers, timeout: timeout, max_redirects: max_redirects - 1, proxy_url: proxy_url)
     end
 
     response_body = inflate(response)
@@ -37,6 +35,18 @@ class HttpFetcher
     response
   rescue StandardError
     nil
+  end
+
+  def self.build_http_client(uri, proxy_url:, timeout:)
+    if proxy_url
+      proxy = URI.parse(proxy_url)
+      http = Net::HTTP::Proxy(proxy.host, proxy.port, proxy.user, proxy.password).new(uri.host, uri.port)
+    else
+      http = Net::HTTP.new(uri.host, uri.port)
+    end
+    http.open_timeout = timeout
+    http.read_timeout = timeout
+    http
   end
 
   def self.inflate(response)

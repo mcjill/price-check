@@ -172,10 +172,11 @@ module Scrapers
         'Referer' => 'https://jiji.com.gh/'
       }
 
-      cookie = fetch_session_cookie(headers)
+      proxy_url = ENV['QUOTAGUARDSTATIC_URL'].presence || ENV['FIXIE_URL'].presence
+      cookie = fetch_session_cookie(headers, proxy_url: proxy_url)
       headers['Cookie'] = cookie if cookie
 
-      response = http_get(api_uri, headers: headers)
+      response = http_get(api_uri, headers: headers, proxy_url: proxy_url)
       return [] unless response
       if ENV['DEBUG_JIJI'] == '1'
         Rails.logger.info("[Jiji API] status=#{response.code} content-type=#{response['content-type']}")
@@ -205,9 +206,9 @@ module Scrapers
       []
     end
 
-    def fetch_session_cookie(headers)
+    def fetch_session_cookie(headers, proxy_url:)
       home_uri = URI(BASE_URL)
-      response = http_get(home_uri, headers: headers)
+      response = http_get(home_uri, headers: headers, proxy_url: proxy_url)
       return nil unless response
 
       cookies = response.get_fields('set-cookie')
@@ -218,14 +219,8 @@ module Scrapers
       nil
     end
 
-    def http_get(uri, headers: {})
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = uri.scheme == 'https'
-      http.open_timeout = 10
-      http.read_timeout = 10
-      request = Net::HTTP::Get.new(uri.request_uri)
-      headers.each { |k, v| request[k] = v }
-      http.request(request)
+    def http_get(uri, headers: {}, proxy_url: nil)
+      HttpFetcher.get(uri.to_s, headers: headers, timeout: 10, proxy_url: proxy_url)
     rescue StandardError
       nil
     end
