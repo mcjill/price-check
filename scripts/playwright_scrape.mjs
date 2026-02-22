@@ -15,7 +15,7 @@ const scrapers = {
     const products = await page.evaluate(() => {
       const pickImage = (item) => {
         const direct = item.getAttribute('data-image') || item.getAttribute('data-img') || item.getAttribute('data-image-src');
-        if (direct) return direct;
+        if (direct && /^(https?:\/\/|\/\/|\/)/.test(direct) && direct !== 'true' && direct !== 'false') return direct;
         const img = item.querySelector('img');
         const source = item.querySelector('source');
         const candidates = [];
@@ -36,7 +36,7 @@ const scrapers = {
           if (val.includes('data:image') || val.includes('placeholder') || val.includes('svg')) continue;
           const first = val.split(',')[0].trim();
           const url = first.split(' ')[0].trim();
-          if (url) return url;
+          if (url && /^(https?:\/\/|\/\/|\/)/.test(url) && url !== 'true' && url !== 'false') return url;
         }
         return '';
       };

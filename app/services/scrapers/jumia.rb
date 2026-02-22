@@ -91,7 +91,7 @@ module Scrapers
     def extract_image(item)
       %w[data-image data-img data-image-src].each do |attr|
         val = item[attr].to_s
-        return val unless val.empty?
+        return val if valid_image_candidate?(val)
       end
 
       img = item.at_css('img')
@@ -115,7 +115,7 @@ module Scrapers
         next if val.include?('data:image') || val.include?('placeholder') || val.include?('svg')
 
         url = val.split(',').first.to_s.split(' ').first.to_s
-        return url unless url.empty?
+        return url if valid_image_candidate?(url)
       end
 
       html = item.to_s
@@ -123,6 +123,14 @@ module Scrapers
       return match[0] if match
 
       ''
+    end
+
+    def valid_image_candidate?(value)
+      val = value.to_s.strip
+      return false if val.empty?
+      return false if %w[true false].include?(val)
+
+      val.start_with?('http://', 'https://', '//', '/')
     end
 
     def scrape_with_playwright(query, min_price, max_price)
