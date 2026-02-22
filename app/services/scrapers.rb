@@ -3,7 +3,7 @@
 require_relative 'scrapers/base'
 require_relative 'scrapers/jumia'
 require_relative 'scrapers/jiji'
-require_relative 'scrapers/compughana'
+require_relative 'scrapers/compu_ghana'
 require_relative 'scrapers/telefonika'
 require_relative 'scrapers/amazon'
 
