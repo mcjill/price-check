@@ -15,13 +15,17 @@ module Scrapers
       }
 
       products = parse_products(mobile_url, headers, min_price, max_price)
-      return products if products.any?
+      if products.any?
+        return products unless products.all? { |p| p[:image_url].to_s.strip.empty? }
+      end
 
       desktop_headers = {
         'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
       }
       products = parse_products(mobile_url, desktop_headers, min_price, max_price)
-      return products if products.any?
+      if products.any?
+        return products unless products.all? { |p| p[:image_url].to_s.strip.empty? }
+      end
 
       scrape_with_playwright(query, min_price, max_price)
     rescue StandardError
