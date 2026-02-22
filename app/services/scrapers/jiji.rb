@@ -162,15 +162,20 @@ module Scrapers
     end
 
     def fetch_api_results(query, min_price, max_price)
-      url = "https://jiji.com.gh/api_web/v1/listing?query=#{URI.encode_www_form_component(query)}&page=1"
-      response = HttpFetcher.get(url, headers: {
+      api_uri = URI("https://jiji.com.gh/api_web/v1/listing?query=#{URI.encode_www_form_component(query)}&page=1")
+      headers = {
         'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept' => 'application/json, text/plain, */*',
         'Accept-Language' => 'en-US,en;q=0.9',
         'X-Requested-With' => 'XMLHttpRequest',
         'Origin' => 'https://jiji.com.gh',
         'Referer' => 'https://jiji.com.gh/'
-      })
+      }
+
+      cookie = fetch_session_cookie(headers)
+      headers['Cookie'] = cookie if cookie
+
+      response = http_get(api_uri, headers: headers)
       return [] unless response
       if ENV['DEBUG_JIJI'] == '1'
         Rails.logger.info("[Jiji API] status=#{response.code} content-type=#{response['content-type']}")
@@ -198,6 +203,31 @@ module Scrapers
     rescue StandardError
       Rails.logger.warn("[Jiji API] parse failed") if ENV['DEBUG_JIJI'] == '1'
       []
+    end
+
+    def fetch_session_cookie(headers)
+      home_uri = URI(BASE_URL)
+      response = http_get(home_uri, headers: headers)
+      return nil unless response
+
+      cookies = response.get_fields('set-cookie')
+      return nil if cookies.nil? || cookies.empty?
+
+      cookies.map { |cookie| cookie.split(';').first }.join('; ')
+    rescue StandardError
+      nil
+    end
+
+    def http_get(uri, headers: {})
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = uri.scheme == 'https'
+      http.open_timeout = 10
+      http.read_timeout = 10
+      request = Net::HTTP::Get.new(uri.request_uri)
+      headers.each { |k, v| request[k] = v }
+      http.request(request)
+    rescue StandardError
+      nil
     end
 
     def scrape_with_playwright(query, min_price, max_price)
