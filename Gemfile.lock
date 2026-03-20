@@ -174,9 +174,9 @@ GEM
       net-protocol
     net-ssh (7.3.0)
     nio4r (2.7.5)
-    nokogiri (1.19.1-x86_64-darwin)
+    nokogiri (1.19.2-x86_64-darwin)
       racc (~> 1.4)
-    nokogiri (1.19.1-x86_64-linux-gnu)
+    nokogiri (1.19.2-x86_64-linux-gnu)
       racc (~> 1.4)
     ostruct (0.6.3)
     parallel (1.27.0)
@@ -354,7 +354,7 @@ DEPENDENCIES
   jbuilder
   jsbundling-rails
   kamal
-  nokogiri (~> 1.16)
+  nokogiri (~> 1.19)
   pg (~> 1.1)
   propshaft
   puma (>= 5.0)
